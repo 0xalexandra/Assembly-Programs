@@ -1,0 +1,159 @@
+.text
+
+# ---------------------------------------------------------------------------
+# 						main program
+# ---------------------------------------------------------------------------
+
+la $a0, arrayMessage	#Zhtaei na tou dwsoun tis times tou pinaka.
+li $v0, 4
+syscall
+
+li $t1, 1				#Metriths gia to poses fores tha ginei to loop.
+la $t2, A				#Kataxwrei thn dieuthinsh tou pinaka ston kataxwrith t2.
+
+
+for1:					#Loop sto opoio diabzontai oi times poy tha mpoun ston pinaka.
+bgt $t1, 5, exit_for1	#An o metriths einai megaluteros tou 5 stamatame na diabazoume times.
+li $v0, 5
+syscall
+sw $v0, ($t2)			#Diabazoyme thn timh kai thn bazoume ston pinaka.
+
+addi $t2, $t2, 4		#Proxwrame ston pinaka.
+addi $t1, $t1, 1		#Proxwrame ton metrith.
+j for1
+
+
+exit_for1:
+la $a0, b1Message		#Zhtame to prwto index.
+li $v0, 4
+syscall
+
+la $t1, b1
+li $v0, 5
+syscall
+sw $v0, ($t1)
+move $t1, $v0			#Diabazoume thn timh, thn apothikeuoume sthn b1 kai thn bazoume kai sto t1.
+
+la $a0, b2Message		#Zhtame to deutero index.
+li $v0, 4
+syscall
+
+la $t2, b2
+li $v0, 5
+syscall
+sw $v0, ($t2)
+move $t2, $v0			#Diabazoume thn timh, thn apothikeuoume sthn b2 kai thn bazoume kai sto t2.
+# --------------------- check bounds ----------------------
+blt $t1, 1, error
+bgt $t1, 5, error
+blt $t2, 1, error
+bgt $t2, 5, error
+bgt $t1, $t2, error
+# --------------------- call subprogram max------------------
+la $a0, A
+la $a1, b1
+la $a2, b2
+jal max
+# --------------------- print results -----------------------
+move $t0, $v0			#Bazw to apotelesma ths max ston kataxwrith t0.
+
+la $a0, resultMessage
+li $v0, 4
+syscall
+
+move $a0, $t0
+li $v0, 1
+syscall
+
+j exit					#Afou emfanistei to apotelesma, paei na termatisei to programma. 
+
+
+error:
+la $a0, errorMessage	#Emfanizoume mhnuma lathous, an ta indexes den einai swsta.
+li $v0, 4
+syscall
+
+
+exit:
+li $v0, 10
+syscall
+
+
+# ---------------------------------------------------------------------------
+# 						max subprogram
+# ---------------------------------------------------------------------------
+
+max:
+move $s0, $a0			#Metaferei thn dieuthinsh tou pinaka A ston ston kataxwrith s0.
+move $s1, $a1			#Metaferei thn dieuthinsh ths metabliths b1 ston ston kataxwrith s1.
+move $s2, $a2			#Metaferei thn dieuthinsh ths metabliths b2 ston ston kataxwrith s2.
+
+addi $sp, $sp, -4
+sw $ra, 0($sp)			#Bazei thn dieuthinsh ths epistrofhs sthn stoiba.
+
+addi $t0, $s1, -1
+mul $t0, $t0, 4
+add $t0, $t0, $s0
+move $s4, $t0			#Ypologizw thn dieuthinsh tou A[k] kai thn bazw ston kataxwrith s4.
+
+move $s3, $s4			#Thetw ws max to A[k].
+
+
+for2:
+addi $s1, $s1, 1		#Pame sto epomeno stoixeio tou pinaka.
+bgt $s1, $s2, exit_for2	#An to index auto einai megalutero apo to anw orio pou exoume thesei, pame sto exit_for2.
+
+addi $t0, $s1, -1
+mul $t0, $t0, 4
+add $t0, $t0, $s0
+move $s4, $t0			#Ypologizw thn dieuthinsh tou A[k] kai thn bazw ston kataxwrith s4.
+
+move $a0, $s3
+move $a1, $s4
+jal greater
+move $s3, $v0			#Ypologizw to megalutero kai to bazw ston kataxwrith s3.
+j for2
+
+
+exit_for2:
+lw $ra, 0($sp)
+addi $sp, $sp, 4		#Epanafernw thn dieuthinsh epistrofhs  kai fernw thn stoiba sthn thesh ths.
+
+move $v0, $s3			#Dinw ws apotelesma to max.
+jr $ra
+
+
+# ---------------------------------------------------------------------------
+# 						greater subprogram
+# ---------------------------------------------------------------------------
+
+greater:
+blt $a0, $a1, a1_greater
+j a0_greater
+
+a1_greater:
+move $v0, $a1
+j exit_greater
+
+a0_greater:
+move $v0, $a0
+j exit_greater
+
+
+exit_greater:
+jr $ra
+
+
+# ---------------------------------------------------------------------------
+# Data Segment:
+# ---------------------------------------------------------------------------
+
+.data
+A:				.space 20
+b1:				.space 4
+b2:				.space 4
+arrayMessage:	.asciiz "Give 5 numbers to put in the array."
+b1Message:		.asciiz "Give me the first index."
+b2Message:		.asciiz "Give me the second index."
+errorMessage:	.asciiz "Index out of range."
+resultMessage:	.asciiz "The max is: "

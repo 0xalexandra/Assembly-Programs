@@ -1,0 +1,105 @@
+.text
+.globl main
+main:
+
+# ----- Read Initial Number -----
+	
+	la $a0,READ_MESSAGE
+	li $v0,4
+	syscall
+	
+	li $v0,5
+	syscall
+
+# ----- Validate Initial Number -----
+	
+	li $t0,999
+	ble $v0,$t0,error
+	li $t0,9999
+	bgt $v0,$t0,error
+	
+# ----- Calculate 1st Digit -----
+	
+	li $t0,1000
+	div $t1,$v0,$t0
+	rem $v0,$v0,$t0
+
+# ----- Calculate 2nd Digit -----
+	
+	li $t0,100
+	div $t2,$v0,$t0
+	rem $v0,$v0,$t0
+
+# ----- Calculate 3rd Digit -----
+	
+	li $t0,10
+	div $t3,$v0,$t0
+	rem $v0,$v0,$t0
+
+# ----- Calculate 4th Digit -----
+	
+	move $t4,$v0
+
+# ----- Encryption of Digits -----
+	
+	addi $t1,$t1,7
+	rem $t1,$t1,$t0
+	
+	addi $t2,$t2,7
+	rem $t2,$t2,$t0
+	
+	addi $t3,$t3,7
+	rem $t3,$t3,$t0
+	
+	addi $t4,$t4,7
+	rem $t4,$t4,$t0
+
+# ----- Build Encrypted Number -----
+	
+	li $t0,0
+	li $t5,10
+	
+	add $t0,$t0,$t3
+	mul $t0,$t0,$t5
+	
+	add $t0,$t0,$t4
+	mul $t0,$t0,$t5
+	
+	add $t0,$t0,$t1
+	mul $t0,$t0,$t5
+	
+	add $t0,$t0,$t2
+
+# ----- Print Encrypted Number -----
+	
+	la $a0,OUTPUT_MESSAGE
+	li $v0,4
+	syscall
+	
+	move $a0,$t0
+	li $v0,1
+	syscall
+	
+	j exit
+
+# ----- Print Error Message -----
+	
+error:
+	
+	la $a0,ERROR_MESSAGE
+	li $v0,4
+	syscall
+	
+	j main
+
+# ----- End of program -----
+	
+exit:
+	
+	li $v0,10
+	syscall
+	
+.data
+READ_MESSAGE: 	.asciiz "\nEnter a four digit number to encrypt: "
+OUTPUT_MESSAGE: .asciiz "\nEncrypted number is : "
+ERROR_MESSAGE: 	.asciiz "\nInvalid input, not a 4-digit number"
